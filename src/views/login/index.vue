@@ -19,20 +19,20 @@
           <img v-if="picUrl" :src="picUrl" @click="getPicCode" alt="">
         </div>
         <div class="form-item">
-          <input class="inp" maxlength="11" placeholder="请输入短信验证码" type="text">
+          <input v-model="msgCode" class="inp" maxlength="11" placeholder="请输入短信验证码" type="text">
           <button @click="getCode">
             {{ second === totalSecond ? '获取验证码' : second + '秒后重新发送' }}
           </button>
         </div>
       </div>
 
-      <div class="login-btn">登录</div>
+      <div @click="login" class="login-btn">登录</div>
     </div>
   </div>
 </template>
 
 <script>
-import { getMsgCode, getPicCode } from '@/api/login'
+import { codeLogin, getMsgCode, getPicCode } from '@/api/login'
 
 export default {
   name: 'LoginIndex',
@@ -44,7 +44,8 @@ export default {
       second: 60, //  当前秒数，开定时器对 second--
       timer: null, //  定时器id
       mobile: '', //  手机号
-      picCode: '' //  用户输入的图形验证码
+      picCode: '', //  用户输入的图形验证码
+      msgCode: '' //  短信验证码
     }
   },
   created () {
@@ -93,6 +94,21 @@ export default {
           }
         }, 1000)
       }
+    },
+
+    //  登录
+    async login () {
+      //  校验
+      if (!this.validFn()) return
+      if (!/^\d{6}$/.test(this.msgCode)) {
+        this.$toast('请输入正确的手机验证码')
+        return
+      }
+
+      const res = await codeLogin(this.mobile, this.msgCode)
+      console.log(res)
+      this.$toast('登录成功')
+      this.$router.push('/')
     }
   },
   //  离开页面时清除定时器
