@@ -30,7 +30,7 @@
 </template>
 
 <script>
-import request from '@/util/request'
+import { getPicCode } from '@/api/login'
 export default {
   name: 'LoginIndex',
   data () {
@@ -46,7 +46,7 @@ export default {
   methods: {
     //  获取图形验证码
     async getPicCode () {
-      const { data: { base64, key } } = await request.get('/captcha/image')
+      const { data: { base64, key } } = await getPicCode()
       this.picKey = key //  存储唯一标识
       this.picUrl = base64 //  存储地址
     }
