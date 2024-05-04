@@ -12,7 +12,7 @@
 
       <div class="form">
         <div class="form-item">
-          <input class="inp" maxlength="11" placeholder="请输入手机号码" type="text">
+          <input v-model="mobile" class="inp" maxlength="11" placeholder="请输入手机号码" type="text">
         </div>
         <div class="form-item">
           <input v-model="picCode" class="inp" maxlength="5" placeholder="请输入图形验证码" type="text">
@@ -20,7 +20,9 @@
         </div>
         <div class="form-item">
           <input class="inp" maxlength="11" placeholder="请输入短信验证码" type="text">
-          <button>获取验证码</button>
+          <button @click="getCode">
+            {{ second === totalSecond ? '获取验证码' : second + '秒后重新发送' }}
+          </button>
         </div>
       </div>
 
@@ -30,14 +32,19 @@
 </template>
 
 <script>
-import { getPicCode } from '@/api/login'
+import { getMsgCode, getPicCode } from '@/api/login'
+
 export default {
   name: 'LoginIndex',
   data () {
     return {
-      picCode: '', //  用户输入的图形验证码
       picKey: '', //  图形验证码唯一标识
-      picUrl: '' //  存储请求渲染的图片地址
+      picUrl: '', //  存储请求渲染的图片地址
+      totalSecond: 60, //  总秒数
+      second: 60, //  当前秒数，开定时器对 second--
+      timer: null, //  定时器id
+      mobile: '', //  手机号
+      picCode: '' //  用户输入的图形验证码
     }
   },
   created () {
@@ -49,7 +56,48 @@ export default {
       const { data: { base64, key } } = await getPicCode()
       this.picKey = key //  存储唯一标识
       this.picUrl = base64 //  存储地址
+    },
+
+    //  校验手机号和图形验证码
+    validFn () {
+      if (!/^1[3-9]\d{9}$/.test(this.mobile)) {
+        this.$toast('请输入正确的手机号')
+        return false
+      }
+      if (!/^\w{4}$/.test(this.picCode)) {
+        this.$toast('请输入正确的图形验证码')
+        return false
+      }
+      return true
+    },
+
+    //  获取短信验证码
+    async getCode () {
+      //  校验不通过不继续
+      if (!this.validFn()) return
+
+      //  目前没开定时器，且 totalSecond 和 second 一致（秒数归位） 才可以倒计时
+      if (!this.timer && this.second === this.totalSecond) {
+        //  发送请求
+        await getMsgCode(this.picCode, this.picKey, this.mobile)
+        this.$toast('短信发送成功')
+
+        //  开启倒计时
+        this.timer = setInterval(() => {
+          this.second--
+
+          if (this.second <= 0) {
+            clearInterval(this.timer)
+            this.timer = null //  重置定时器 id
+            this.second = this.totalSecond //  归位
+          }
+        }, 1000)
+      }
     }
+  },
+  //  离开页面时清除定时器
+  destroyed () {
+    clearInterval(this.timer)
   }
 }
 </script>
