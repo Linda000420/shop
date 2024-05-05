@@ -11,3 +11,22 @@ export const getGoodsList = (obj) => {
     }
   })
 }
+
+//  获取商品详情页数据
+export const getGoodsDetailList = (goodsId) => {
+  return request.get('/goods/detail', {
+    params: {
+      goodsId
+    }
+  })
+}
+
+//  获取商品评价列表
+export const getGoodsComments = (goodsId, limit) => {
+  return request.get('/comment/listRows', {
+    params: {
+      goodsId,
+      limit
+    }
+  })
+}
