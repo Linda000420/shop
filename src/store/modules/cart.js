@@ -1,4 +1,4 @@
-import { getCartList } from '@/api/cart'
+import { getCartList, changeCount } from '@/api/cart'
 
 export default {
   namespaced: true,
@@ -22,6 +22,11 @@ export default {
       state.cartList.forEach(item => {
         item.isChecked = flag
       })
+    },
+
+    changeCount (state, { goodsId, goodsNum }) {
+      const goods = state.cartList.find(item => item.goods_id === goodsId)
+      goods.goods_num = goodsNum
     }
   },
   actions: {
@@ -33,6 +38,14 @@ export default {
         item.isChecked = false
       })
       context.commit('setCartList', data.list)
+    },
+
+    async changeCountAction (context, { goodsId, goodsNum, goodsSkuId }) {
+      //  本地修改
+      context.commit('changeCount', { goodsId, goodsNum })
+
+      //  同步后台
+      await changeCount(goodsId, goodsNum, goodsSkuId)
     }
   },
   getters: {
