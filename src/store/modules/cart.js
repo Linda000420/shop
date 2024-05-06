@@ -1,4 +1,5 @@
-import { getCartList, changeCount } from '@/api/cart'
+import { getCartList, changeCount, delGoods } from '@/api/cart'
+import { Toast } from 'vant'
 
 export default {
   namespaced: true,
@@ -24,6 +25,7 @@ export default {
       })
     },
 
+    //  修改本地商品数量
     changeCount (state, { goodsId, goodsNum }) {
       const goods = state.cartList.find(item => item.goods_id === goodsId)
       goods.goods_num = goodsNum
@@ -46,6 +48,17 @@ export default {
 
       //  同步后台
       await changeCount(goodsId, goodsNum, goodsSkuId)
+    },
+
+    //  删除购物车对应商品
+    async delSelect (context) {
+      const selCartList = context.getters.selCartList
+      const delIds = selCartList.map(item => item.id)
+      await delGoods(delIds)
+      Toast('删除成功')
+
+      //  删除成功后重新拉取数据
+      context.dispatch('getCartAction')
     }
   },
   getters: {
