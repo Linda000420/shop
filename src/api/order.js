@@ -30,3 +30,13 @@ export const submitOrder = (mode, obj, remark) => {
     ...obj //  将传递过来的参数对象进行展开
   })
 }
+
+//  我的订单列表
+export const getMyOrderList = (dataType, page) => {
+  return request.get('/order/list', {
+    params: {
+      dataType, //  订单类型，all->全部，payment->待支付，delivery->待发货，received->待收货，comment->待评价
+      page
+    }
+  })
+}
