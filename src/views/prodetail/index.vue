@@ -103,7 +103,7 @@
         <!-- 有库存才显示提交按钮 -->
         <div class="showbtn" v-if="list.stock_total > 0">
           <div class="btn" v-if="mode === 'cart'" @click="addCart">加入购物车</div>
-          <div class="btn now" v-else>立刻购买</div>
+          <div class="btn now" @click="goPay" v-else>立刻购买</div>
         </div>
         <div class="btn-none" v-else>该商品已抢完</div>
       </div>
@@ -116,12 +116,14 @@ import { getGoodsDetailList, getGoodsComments } from '@/api/goods'
 import defaultImg from '@/assets/default-avatar.png'
 import CountBox from '@/components/CountBox.vue'
 import { addCart } from '@/api/cart'
+import loginConfirm from '@/mixins/loginConfirm'
 
 export default {
   name: 'ProDetail',
   components: {
     CountBox
   },
+  mixins: [loginConfirm],
   data () {
     return {
       images: [
@@ -162,34 +164,32 @@ export default {
       this.showPannel = true
     },
     async addCart () {
-      //  判断 token 是否存在
-      if (!this.$store.getters.token) {
-        //  弹确认框
-        this.$dialog.confirm({
-          title: '温馨提示',
-          message: '此时需要先登录才能继续操作哦',
-          confirmButtonText: '去登陆',
-          cancelButtonText: '再逛逛'
-        }).then(() => {
-          //  确认按钮操作
-          //  跳转登录 => 登陆后会跳需要跳转时携带参数
-          //  this.$route.fullPath => 带参数
-          this.$router.replace({
-            path: '/login',
-            query: {
-              backUrl: this.$route.fullPath
-            }
-          })
-        }).catch(() => {
-          //  取消按钮操作
-        })
+      //  未登录处理
+      if (this.loginConfirm()) {
         return
       }
 
-      const res = await addCart(this.goodsId, this.addCount, this.list.skuList[0].goods_sku_id)
-      this.cartTotal = res.data.cartTotal
+      const { data } = await addCart(this.goodsId, this.addCount, this.list.skuList[0].goods_sku_id)
+      this.cartTotal = data.cartTotal
       this.$toast('加入购物车成功')
       this.showPannel = false
+    },
+    //  跳转结算页面
+    goPay () {
+      //  未登录处理
+      if (this.loginConfirm()) {
+        return
+      }
+
+      this.$router.push({
+        path: '/pay',
+        query: {
+          mode: 'buyNow',
+          goodsId: this.goodsId,
+          goodsNum: this.addCount,
+          goodsSkuId: this.list.skuList[0].goods_sku_id
+        }
+      })
     }
   },
   computed: {

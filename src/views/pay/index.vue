@@ -129,6 +129,18 @@ export default {
     //  接收 cartIds
     cartIds () {
       return this.$route.query.cartIds
+    },
+    //  接收 goodsId
+    goodsId () {
+      return this.$route.query.goodsId
+    },
+    //  接收 goodsNum
+    goodsNum () {
+      return this.$route.query.goodsNum
+    },
+    //  接收 goodsSkuId
+    goodsSkuId () {
+      return this.$route.query.goodsSkuId
     }
   },
   methods: {
@@ -139,12 +151,26 @@ export default {
     },
     //  获取购买商品列表
     async getOrderList () {
-      const { data: { order, personal } } = await checkOrder(this.mode, {
-        cartIds: this.cartIds
-      })
-      this.order = order
-      this.personal = personal
-      this.goodsList = order.goodsList
+      //  购物车进入
+      if (this.mode === 'cart') {
+        const { data: { order, personal } } = await checkOrder(this.mode, {
+          cartIds: this.cartIds
+        })
+        this.order = order
+        this.personal = personal
+        this.goodsList = order.goodsList
+      }
+      //  立即购买进入
+      if (this.mode === 'buyNow') {
+        const { data: { order, personal } } = await checkOrder(this.mode, {
+          goodsId: this.goodsId,
+          goodsNum: this.goodsNum,
+          goodsSkuId: this.goodsSkuId
+        })
+        this.order = order
+        this.personal = personal
+        this.goodsList = order.goodsList
+      }
     }
   }
 }
